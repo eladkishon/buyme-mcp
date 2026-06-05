@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Star } from "@phosphor-icons/react";
+import { Star, GithubLogo } from "@phosphor-icons/react";
 import { CopyButton } from "./CopyButton";
 
 const REPO_URL = "https://github.com/eladkishon/buyme-mcp";
@@ -31,7 +31,6 @@ const DICT = {
 
 export function Landing({ endpoint, stats }: { endpoint: string; stats: Stats }) {
   const [lang, setLang] = useState<Lang>("he");
-  const [stars, setStars] = useState<number | null>(null);
   const t = DICT[lang];
   const rtl = lang === "he";
   const n = fmt(stats.businesses);
@@ -40,15 +39,6 @@ export function Landing({ endpoint, stats }: { endpoint: string; stats: Stats })
     document.documentElement.lang = lang;
     document.documentElement.dir = rtl ? "rtl" : "ltr";
   }, [lang, rtl]);
-
-  useEffect(() => {
-    fetch("https://api.github.com/repos/eladkishon/buyme-mcp")
-      .then((r) => r.json())
-      .then((d) => {
-        if (typeof d?.stargazers_count === "number") setStars(d.stargazers_count);
-      })
-      .catch(() => {});
-  }, []);
 
   return (
     <main className="zen" dir={rtl ? "rtl" : "ltr"}>
@@ -60,7 +50,11 @@ export function Landing({ endpoint, stats }: { endpoint: string; stats: Stats })
       </div>
 
       <div className="stack">
-        <img src="/buyme-logo.webp" alt="BUYME" className="zlogo" />
+        <div className="lockup">
+          <img src="/buyme-logo.webp" alt="BUYME" className="zlogo" />
+          <span className="rule" />
+          <span className="mcp-badge">MCP</span>
+        </div>
         <h1 className="zh1">
           {rtl ? (
             <>כל בית עסק שמכבד <span className="zbrand">BUYME</span>, דרך ה-AI שלכם.</>
@@ -83,10 +77,10 @@ export function Landing({ endpoint, stats }: { endpoint: string; stats: Stats })
 
         <p className="zhint">{t.hint}</p>
 
-        <a className="zstar" href={`${REPO_URL}`} target="_blank" rel="noreferrer">
-          <Star size={17} weight="fill" className="star-ico" />
+        <a className="zstar" href={REPO_URL} target="_blank" rel="noreferrer">
+          <GithubLogo size={18} weight="fill" />
           {t.star}
-          {stars != null && <span className="scount">{fmt(stars)}</span>}
+          <Star size={16} weight="fill" className="star-ico" />
         </a>
       </div>
 

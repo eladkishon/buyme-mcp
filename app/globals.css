@@ -85,7 +85,10 @@ a { color: inherit; text-decoration: none; }
   display: flex; flex-direction: column; align-items: center; text-align: center;
   max-width: 600px;
 }
-.zlogo { height: 76px; width: auto; margin-bottom: 26px; animation: rise .8s cubic-bezier(.16,1,.3,1) both; }
+.lockup { display: inline-flex; align-items: center; gap: 13px; margin-bottom: 26px; animation: rise .8s cubic-bezier(.16,1,.3,1) both; }
+.zlogo { height: 58px; width: auto; display: block; }
+.lockup .rule { width: 1px; height: 34px; background: var(--line); }
+.mcp-badge { font-weight: 800; font-size: 14px; letter-spacing: .08em; color: var(--brand); background: var(--brand-soft); border-radius: 9px; padding: 7px 12px; }
 .zh1 {
   font-size: clamp(28px, 4.6vw, 44px); line-height: 1.16; letter-spacing: -0.025em;
   font-weight: 800; color: var(--ink); margin: 0 0 16px;
