@@ -1,0 +1,28 @@
+{
+  "name": "buyme-mcp-vercel",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Public remote MCP server (Streamable HTTP) for searching businesses that accept BuyMe gift cards",
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.26.0",
+    "@phosphor-icons/react": "^2.1.10",
+    "@vercel/blob": "^2.4.0",
+    "geist": "^1.7.2",
+    "mcp-handler": "^1.1.0",
+    "next": "^16.2.7",
+    "react": "^19.2.7",
+    "react-dom": "^19.2.7",
+    "zod": "^3.25.76"
+  },
+  "devDependencies": {
+    "@types/node": "^25.9.1",
+    "@types/react": "^19.2.16",
+    "@types/react-dom": "^19.2.3",
+    "typescript": "^6.0.3"
+  }
+}
