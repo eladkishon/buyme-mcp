@@ -463,10 +463,15 @@ button { font-family: inherit; }
    Responsive
    ===================================================================== */
 @media (max-width: 940px) {
-  .hero { grid-template-columns: 1fr; max-width: 540px; gap: 36px; }
-  .hero-copy { align-items: center; text-align: center; max-width: none; }
+  /* minmax(0,1fr) lets the single column shrink below its content's min-content
+     (a plain 1fr can't — the demo's intrinsic width was blowing the track out) */
+  .hero { grid-template-columns: minmax(0, 1fr); max-width: 540px; gap: 36px; }
+  .hero-demo { min-width: 0; }
+  /* let the copy column honor the grid track instead of blowing out to content width */
+  .hero-copy { align-items: center; text-align: center; max-width: 100%; min-width: 0; width: 100%; }
   .hero-copy .lede { max-width: 46ch; }
-  .hero-install { margin-inline: auto; }
+  .hero-install { margin-inline: auto; max-width: 100%; width: 100%; min-width: 0; }
+  .cmd-block, .cmdline, .cta-row, .howto, .howto-steps { max-width: 100%; min-width: 0; }
   .cta-row { justify-content: center; }
   .hero-demo { order: 2; }
   /* unfan the stack — two full-width cards, one above the other */

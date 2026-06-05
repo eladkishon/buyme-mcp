@@ -6,15 +6,30 @@ that accept **BuyMe** (buyme.co.il) gift cards. Deployed on Vercel.
 **Live:** https://buyme-mcp-vercel.vercel.app
 **MCP endpoint:** `https://buyme-mcp-vercel.vercel.app/api/mcp`
 
-Same catalog and tools as the local `~/buyme-mcp` stdio server, re-wrapped as a
-stateless Streamable HTTP endpoint so any MCP client (Gemini, Claude, ChatGPT,
-etc.) can use it over the internet.
+This repo holds **two servers** that share the same catalog:
+
+- **Cloud / remote** (this Next.js app, `app/api/[transport]/route.ts`) — the public
+  Streamable HTTP endpoint any MCP client (Gemini, Claude, ChatGPT…) can use over the
+  internet. Search/lookup only; wallet reads are `DISABLED_ON_CLOUD` by design.
+- **Local / stdio** (`local-server/`) — the server you run on your own machine, where
+  your BuyMe token stays local and the **wallet tools actually work**. See
+  [`local-server/README.md`](local-server/README.md) and
+  [`local-server/WALLET-SETUP.md`](local-server/WALLET-SETUP.md).
 
 ## Tools
+
+Catalog tools (both servers):
 
 - `search_businesses` — `query` (HE/EN) + filters: `category`, `region`, `online_only`, `min_price`, `max_price`, `limit`
 - `get_business` — full detail + all products/prices for one `id`
 - `list_categories` / `list_regions` — browse with counts
+
+Wallet tools (**local server only** — the cloud server returns `DISABLED_ON_CLOUD`):
+
+- `list_my_giftcards` — your cards: balance, code, expiry, redeem link, total
+- `wallet_summary` — total, counts, value distribution, small cards to clear, expiry buckets
+- `giftcards_expiring` — cards lapsing within N days (default 90), soonest first
+- `assemble_amount` — which cards to combine to cover a target ₪ amount, lowest balance first
 
 ## Connect
 
@@ -43,6 +58,7 @@ lib/dataset.ts                       loads bundled data/buyme.json
 scripts/scrape.mjs                   scraper -> data/buyme.json
 .github/workflows/refresh-catalog.yml  weekly auto-refresh
 data/buyme.json                      bundled catalog
+local-server/                        local stdio MCP server (wallet tools; not part of the Vercel build)
 ```
 
 Stateless Streamable HTTP — **no Redis required**. Node.js runtime.
