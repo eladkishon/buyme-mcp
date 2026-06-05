@@ -1,23 +1,29 @@
 import "./globals.css";
-import { GeistSans } from "geist/font/sans";
+import { Open_Sans } from "next/font/google";
 import { GeistMono } from "geist/font/mono";
 
+const openSans = Open_Sans({
+  subsets: ["latin", "hebrew"],
+  weight: ["400", "600", "700", "800"],
+  variable: "--font-sans",
+  display: "swap",
+});
+
 export const metadata = {
-  title: "BuyMe MCP — search businesses that accept BuyMe, from your AI",
+  title: "BUYME Finder — חיפוש בתי עסק שמכבדים BUYME דרך ה-AI",
   description:
-    "A public MCP (Model Context Protocol) server that lets Gemini, Claude, and any agent search 1,244 Israeli businesses accepting BuyMe gift cards by name, category, region, price, and online redemption. Unofficial index of buyme.co.il.",
+    "כלי חכם לחיפוש בתי עסק שמכבדים שובר BUYME — לפי קטגוריה, אזור, מחיר ומימוש אונליין. מתחבר ל-Gemini, Claude וכל עוזר AI. A smart finder for businesses that accept BuyMe gift cards, from your AI assistant.",
   metadataBase: new URL("https://buyme-mcp-vercel.vercel.app"),
   openGraph: {
-    title: "BuyMe MCP",
-    description:
-      "Search businesses that accept BuyMe gift cards, straight from your AI assistant. One MCP endpoint.",
+    title: "BUYME Finder",
+    description: "חיפוש בתי עסק שמכבדים BUYME, ישר מתוך עוזר ה-AI שלכם.",
     url: "https://buyme-mcp-vercel.vercel.app",
   },
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" className={`${GeistSans.variable} ${GeistMono.variable}`}>
+    <html lang="he" dir="rtl" className={`${openSans.variable} ${GeistMono.variable}`}>
       <body>{children}</body>
     </html>
   );

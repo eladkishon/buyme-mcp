@@ -3,45 +3,52 @@
 import { useState } from "react";
 import { CopyButton } from "./CopyButton";
 
-export function ConnectTabs({ endpoint }: { endpoint: string }) {
+export function ConnectTabs({
+  endpoint,
+  copyLabel = "Copy",
+  claudeAiComment,
+  note,
+}: {
+  endpoint: string;
+  copyLabel?: string;
+  claudeAiComment: string;
+  note: string;
+}) {
+  const claudeAi = claudeAiComment
+    .split("\n")
+    .map((l) => `# ${l}`)
+    .join("\n") + `\n${endpoint}`;
+
   const targets = [
     { key: "gemini", label: "Gemini CLI", cmd: `gemini mcp add --transport http buyme ${endpoint}` },
     { key: "claude-code", label: "Claude Code", cmd: `claude mcp add --transport http buyme ${endpoint}` },
-    {
-      key: "claude-ai",
-      label: "Claude.ai",
-      cmd: `# Settings -> Connectors -> Add custom connector\n# Paste this URL:\n${endpoint}`,
-    },
+    { key: "claude-ai", label: "Claude.ai", cmd: claudeAi },
   ];
   const [active, setActive] = useState(0);
   const current = targets[active];
+  const copyText = current.cmd
+    .split("\n")
+    .filter((l) => !l.startsWith("#"))
+    .join("\n")
+    .trim();
 
   return (
     <div>
-      <div className="tabs" role="tablist" aria-label="Connect your AI client">
-        {targets.map((t, i) => (
-          <button
-            key={t.key}
-            role="tab"
-            aria-selected={i === active}
-            className="tab"
-            onClick={() => setActive(i)}
-          >
-            {t.label}
+      <div className="tabs" role="tablist" aria-label="Connect">
+        {targets.map((tgt, i) => (
+          <button key={tgt.key} role="tab" aria-selected={i === active} className="tab" onClick={() => setActive(i)}>
+            {tgt.label}
           </button>
         ))}
       </div>
 
       <div className="codeblock">
-        <pre>
-          <code className="mono">{current.cmd}</code>
-        </pre>
-        <CopyButton text={current.cmd.split("\n").filter((l) => !l.startsWith("#")).join("\n").trim()} />
+        <pre><code className="mono">{current.cmd}</code></pre>
+        <CopyButton text={copyText} label={copyLabel} />
       </div>
 
       <p className="code-note">
-        Works with any MCP client over Streamable HTTP. For the Gemini API or other SDKs, point their
-        MCP transport at <span className="mono" style={{ color: "#ff77a4" }}>{endpoint}</span>.
+        {note} <span className="mono" dir="ltr">{endpoint}</span>
       </p>
     </div>
   );
