@@ -5,8 +5,10 @@
   "description": "Public remote MCP server (Streamable HTTP) for searching businesses that accept BuyMe gift cards",
   "scripts": {
     "dev": "next dev",
+    "prebuild": "node scripts/scrape.mjs || echo 'scrape failed; using committed data/buyme.json'",
     "build": "next build",
-    "start": "next start"
+    "start": "next start",
+    "scrape": "node scripts/scrape.mjs"
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.26.0",

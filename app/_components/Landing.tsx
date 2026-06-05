@@ -10,6 +10,9 @@ import {
   SquaresFour,
   MapPin,
   ArrowUpRight,
+  DownloadSimple,
+  FileText,
+  Sparkle,
 } from "@phosphor-icons/react";
 import { CopyButton } from "./CopyButton";
 import { ConnectTabs } from "./ConnectTabs";
@@ -54,6 +57,22 @@ const DICT = {
     footerDisc:
       "אינדקס קהילתי לא רשמי שנבנה מנתונים הזמינים לכלל באתר buyme.co.il. איננו משויכים ל-BUYME ואיננו מקבלים את חסותה. ייתכן שמחירים, תנאים ורשימת בתי העסק אינם מעודכנים. תמיד מומלץ לאמת באתר הרשמי לפני מימוש.",
     endpointLink: "נקודת קצה",
+    gemTitle: "מעדיפים Gemini? בנו Gem",
+    gemLede: "צרו עוזר BUYME אישי בתוך Gemini בעזרת קובץ הקטלוג והוראות מוכנות מראש.",
+    gemSteps: [
+      "היכנסו ל-gemini.google.com ובחרו Gems ואז New Gem",
+      "הדביקו את הוראות ה-Gem",
+      "העלו את קובץ הקטלוג (CSV) כ-Knowledge",
+      "שמרו ושאלו: ״ספא בצפון עד 300 ₪״",
+    ],
+    gemCsv: "הורדת הקטלוג (CSV)",
+    gemInstr: "הוראות ל-Gem",
+    gemOpen: "פתחו את Gemini",
+    gemNote: "ב-Gem הנתונים מקומיים. לחיפוש חי ומלא, חברו את נקודת הקצה דרך Gemini API או SDK.",
+    ctaTitle: "מצאו את המתנה המושלמת",
+    ctaLede: "חברו את העוזר וקבלו המלצות אמיתיות מתוך אלפי בתי עסק שמכבדים BUYME.",
+    ctaConnect: "חברו עכשיו",
+    ctaBuyme: "buyme.co.il",
   },
   en: {
     navTools: "Tools",
@@ -87,6 +106,22 @@ const DICT = {
     footerDisc:
       "Unofficial community index built from publicly available data on buyme.co.il. Not affiliated with or endorsed by BuyMe. Prices, terms, and the list of participating businesses may be out of date. Always confirm on the official site before relying on it.",
     endpointLink: "Endpoint",
+    gemTitle: "Prefer Gemini? Build a Gem",
+    gemLede: "Create your own BUYME assistant inside Gemini using the catalog file and ready-made instructions.",
+    gemSteps: [
+      "Open gemini.google.com and choose Gems, then New Gem",
+      "Paste the Gem instructions",
+      "Upload the catalog file (CSV) as Knowledge",
+      "Save and ask: “A spa up north under ₪300”",
+    ],
+    gemCsv: "Download catalog (CSV)",
+    gemInstr: "Gem instructions",
+    gemOpen: "Open Gemini",
+    gemNote: "In a Gem the data is local. For live, full search, connect the endpoint via the Gemini API or SDK.",
+    ctaTitle: "Find the perfect gift",
+    ctaLede: "Connect your assistant and get real recommendations from thousands of businesses that accept BUYME.",
+    ctaConnect: "Connect now",
+    ctaBuyme: "buyme.co.il",
   },
 } as const;
 
@@ -179,7 +214,7 @@ export function Landing({ endpoint, stats }: { endpoint: string; stats: Stats })
           <p className="section-lede center">{t.examplesLede}</p>
           <div className="examples">
             {t.examples.map((ex, i) => (
-              <div className="ex" key={i}>
+              <div className={`ex tile t${i}`} key={i}>
                 <div className="ex-ico">{exIcons[i]}</div>
                 <p>{ex}</p>
               </div>
@@ -226,8 +261,36 @@ export function Landing({ endpoint, stats }: { endpoint: string; stats: Stats })
         </div>
       </section>
 
+      {/* gemini gem */}
+      <section className="block">
+        <div className="wrap">
+          <h2 className="h2">{t.gemTitle}</h2>
+          <p className="section-lede">{t.gemLede}</p>
+          <div className="steps">
+            {t.gemSteps.map((s, i) => (
+              <div className="step" key={i}>
+                <div className="step-n mono">{i + 1}</div>
+                <p>{s}</p>
+              </div>
+            ))}
+          </div>
+          <div className="btn-row">
+            <a className="btn btn-primary" href="/buyme-businesses.csv" download>
+              <DownloadSimple size={18} weight="bold" /> {t.gemCsv}
+            </a>
+            <a className="btn btn-ghost" href="/gem-instructions.md" target="_blank" rel="noreferrer">
+              <FileText size={18} /> {t.gemInstr}
+            </a>
+            <a className="btn btn-ghost" href="https://gemini.google.com/gems/create" target="_blank" rel="noreferrer">
+              <Sparkle size={18} weight="fill" /> {t.gemOpen}
+            </a>
+          </div>
+          <p className="code-note">{t.gemNote}</p>
+        </div>
+      </section>
+
       {/* connect */}
-      <section className="block" id="connect">
+      <section className="block soft" id="connect">
         <div className="wrap">
           <h2 className="h2">{t.connectTitle}</h2>
           <p className="section-lede">{t.connectLede}</p>
@@ -237,6 +300,22 @@ export function Landing({ endpoint, stats }: { endpoint: string; stats: Stats })
             claudeAiComment={t.claudeAiComment}
             note={t.connectNoteA}
           />
+        </div>
+      </section>
+
+      {/* cta band */}
+      <section className="block">
+        <div className="wrap">
+          <div className="cta-band">
+            <h2 className="h2">{t.ctaTitle}</h2>
+            <p>{t.ctaLede}</p>
+            <div className="btn-row" style={{ justifyContent: "center" }}>
+              <a className="btn btn-white" href="#connect">{t.ctaConnect}</a>
+              <a className="btn btn-outline-white" href="https://buyme.co.il" target="_blank" rel="noreferrer">
+                {t.ctaBuyme} <ArrowUpRight size={15} weight="bold" />
+              </a>
+            </div>
+          </div>
         </div>
       </section>
 

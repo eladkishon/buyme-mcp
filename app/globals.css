@@ -178,3 +178,29 @@ a { color: inherit; text-decoration: none; }
   @keyframes rise { to { opacity: 1; transform: translateY(0); } }
 }
 @media (prefers-reduced-motion: reduce) { .marquee-track { animation: none; } }
+
+/* ---------- BuyMe-style colorful example tiles ---------- */
+.ex.tile { color: #fff; border: none; }
+.ex.tile p { color: #fff; }
+.ex.tile .ex-ico { background: rgba(255, 255, 255, 0.22); color: #fff; }
+.ex.t0 { background: linear-gradient(135deg, #df0f65, #ff5c9b); }
+.ex.t1 { background: linear-gradient(135deg, #0fb1a9, #16d0c6); }
+.ex.t2 { background: linear-gradient(135deg, #ff8a00, #ffb04a); }
+.ex.tile:hover { box-shadow: 0 18px 40px rgba(50, 58, 72, 0.18); border-color: transparent; }
+
+/* ---------- gem install steps ---------- */
+.steps { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 28px; }
+.step { background: #fff; border: 1px solid var(--line); border-radius: var(--r-card); padding: 22px; box-shadow: var(--shadow-sm); }
+.step-n { display: grid; place-items: center; width: 30px; height: 30px; border-radius: 50%; background: var(--brand-soft); color: var(--brand); font-weight: 800; font-size: 14px; margin-bottom: 12px; }
+.step p { margin: 0; color: var(--ink); font-size: 14.5px; font-weight: 600; }
+.btn-row { display: flex; gap: 12px; flex-wrap: wrap; }
+@media (max-width: 760px) { .steps { grid-template-columns: 1fr 1fr; } }
+
+/* ---------- magenta CTA band ---------- */
+.cta-band { background: linear-gradient(135deg, #df0f65, #ff5c9b); border-radius: 24px; padding: 56px 32px; text-align: center; color: #fff; box-shadow: 0 24px 60px rgba(223, 15, 101, 0.3); }
+.cta-band h2 { color: #fff; margin: 0 0 10px; }
+.cta-band p { color: rgba(255, 255, 255, 0.9); margin: 0 auto 24px; max-width: 52ch; font-size: 17px; }
+.btn-white { background: #fff; color: var(--brand); box-shadow: 0 8px 20px rgba(0, 0, 0, 0.12); }
+.btn-white:hover { transform: translateY(-1px); background: #fff; box-shadow: 0 12px 26px rgba(0, 0, 0, 0.18); }
+.btn-outline-white { background: transparent; color: #fff; border-color: rgba(255, 255, 255, 0.55); }
+.btn-outline-white:hover { transform: translateY(-1px); border-color: #fff; color: #fff; background: rgba(255,255,255,0.08); }
