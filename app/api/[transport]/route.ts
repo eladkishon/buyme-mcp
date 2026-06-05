@@ -75,6 +75,33 @@ const handler = createMcpHandler(
     );
 
     server.registerTool(
+      "list_my_giftcards",
+      {
+        title: "List my BuyMe gift cards",
+        description:
+          "List the signed-in user's own BuyMe gift cards (their wallet) with current balance, codes, expiry, and redeem links, plus a total balance. DISABLED on this public cloud server — it would require holding a user's private buyme.co.il session, which a shared multi-tenant deployment must never do. Calling it returns status DISABLED_ON_CLOUD with instructions to install the BuyMe MCP locally, where the session cookie stays on the user's machine.",
+        inputSchema: {
+          include_used: z.boolean().optional().describe("Include already-used gift cards (default false)."),
+          include_expired: z.boolean().optional().describe("Include expired gift cards (default false)."),
+        },
+      },
+      async () =>
+        ok({
+          status: "DISABLED_ON_CLOUD",
+          reason:
+            "Reading a personal wallet requires the user's logged-in buyme.co.il session. This public, multi-tenant cloud server must never hold per-user credentials, so the capability is only available on the locally-installed server.",
+          instructions: [
+            "Relay to the user: listing their own gift cards runs entirely on their machine (their BuyMe token never touches this server). One-time local setup:",
+            "1. Copy the buyme-mcp project locally and run `npm install`, then add it to ~/.claude.json under mcpServers as a stdio server:",
+            '   "buyme": { "type": "stdio", "command": "node", "args": ["/absolute/path/to/buyme-mcp/server.mjs"], "env": {} }',
+            "2. BuyMe uses Bearer-token auth: in a logged-in buyme.co.il tab, read JSON.parse(localStorage['ember_simple_auth-session']).authenticated.token",
+            "3. Save it to ~/.buyme-token.json as {\"token\":\"<jwt>\"} (or set BUYME_TOKEN). Tokens last ~1 year.",
+            "4. The local list_my_giftcards tool then fetches the wallet directly — no browser needed.",
+          ].join("\n"),
+        })
+    );
+
+    server.registerTool(
       "list_categories",
       {
         title: "List BuyMe categories",
