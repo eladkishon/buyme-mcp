@@ -11,7 +11,6 @@
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.26.0",
     "@phosphor-icons/react": "^2.1.10",
-    "@vercel/blob": "^2.4.0",
     "geist": "^1.7.2",
     "mcp-handler": "^1.1.0",
     "next": "^16.2.7",

@@ -35,46 +35,28 @@ at the same URL.
 ## Architecture
 
 ```
-app/api/[transport]/route.ts   MCP server (mcp-handler, Streamable HTTP) -> /api/mcp
-app/api/refresh/route.ts       weekly cron: re-scrape -> Vercel Blob
-app/page.tsx                   public landing page + attribution
-lib/catalog.ts                 search / filter / lookup logic (shared)
-lib/dataset.ts                 load from Blob (BUYME_DATA_URL) else bundled JSON
-lib/scrape.ts                  scraper (used by the cron)
-data/buyme.json                bundled catalog (build-time fallback)
-vercel.json                    cron schedule
+app/api/[transport]/route.ts        MCP server (mcp-handler, Streamable HTTP) -> /api/mcp
+app/page.tsx                         server: gathers endpoint + stats
+app/_components/Landing.tsx          bilingual (HE/EN) UI, RTL toggle
+lib/catalog.ts                       search / filter / lookup logic (shared)
+lib/dataset.ts                       loads bundled data/buyme.json
+scripts/scrape.mjs                   scraper -> data/buyme.json
+.github/workflows/refresh-catalog.yml  weekly auto-refresh
+data/buyme.json                      bundled catalog
 ```
 
 Stateless Streamable HTTP — **no Redis required**. Node.js runtime.
 
-## Keeping the catalog fresh
+## Keeping the catalog fresh (automatic)
 
-The bundled `data/buyme.json` always works. Two ways to refresh:
+A GitHub Action (`.github/workflows/refresh-catalog.yml`) re-scrapes BuyMe **every
+Monday 04:00 UTC**, and commits `data/buyme.json` only if it changed. The push
+triggers a Vercel production deploy, so the live site + MCP endpoint always serve
+fresh data. No Vercel plan limits apply (the scrape runs on the GitHub runner, not
+in a serverless function).
 
-### A) Re-scrape locally + redeploy (any Vercel plan)
-
-```sh
-cd ~/buyme-mcp && npm run scrape           # rebuild ~/buyme-mcp/data/buyme.json
-cp ~/buyme-mcp/data/buyme.json ~/buyme-mcp-vercel/data/
-cd ~/buyme-mcp-vercel && git commit -am "refresh catalog" && git push   # auto-deploys (or: vercel deploy --prod)
-```
-
-> This repo is connected to Vercel — pushing to `main` triggers a production deploy automatically.
-
-### B) Automated weekly cron → Vercel Blob (needs Blob store + Fluid compute)
-
-`vercel.json` already schedules `GET /api/refresh` Mondays 04:00 UTC. To activate:
-
-1. Create a Blob store and link it (adds `BLOB_READ_WRITE_TOKEN`):
-   `vercel blob store add buyme-data`
-2. Set a cron secret so the expensive scrape can't be triggered by anyone:
-   `vercel env add CRON_SECRET production` (Vercel sends it automatically on cron runs).
-3. After the first successful `/api/refresh`, set `BUYME_DATA_URL` to the returned
-   blob URL (`https://<store>.public.blob.vercel-storage.com/buyme.json`) so the
-   MCP route serves the fresh copy. Redeploy.
-
-The in-function scrape (~1,244 requests, 1-2 min) needs `maxDuration: 300`
-(Fluid compute, Pro/Enterprise). On Hobby, use method (A).
+- Run it on demand: GitHub → Actions → "Refresh BuyMe catalog" → **Run workflow**.
+- Manual local refresh: `node scripts/scrape.mjs && git commit -am "refresh catalog" && git push`.
 
 ## Caveat
 
