@@ -28,6 +28,7 @@ const DICT = {
     h1c: " דרך ה-AI שלכם.",
     lede: (n: string) =>
       `נקודת קצה אחת שמחברת כל עוזר AI ל-${n} בתי העסק שמכבדים שובר BUYME — חיפוש לפי קטגוריה, אזור, תקציב, מימוש אונליין ושעות פתיחה.`,
+    walletCap: "שואלים “כמה נשאר לי ב-BUYME?” והוא בודק את הארנק שלכם — רץ מקומית, הטוקן נשאר על המכשיר.",
     copyPrompt: "קחו את הפרומפט",
     copied: "הועתק",
     gemCta: "נסו ב-Gemini",
@@ -49,6 +50,7 @@ const DICT = {
     h1c: " through your AI.",
     lede: (n: string) =>
       `One endpoint that connects any AI assistant to the ${n} businesses that accept BuyMe gift cards — search by category, region, budget, online redemption and opening hours.`,
+    walletCap: "Ask “how much is left in my BuyMe?” and it checks your own wallet — runs locally, your token never leaves your device.",
     copyPrompt: "Grab the prompt",
     copied: "Copied",
     gemCta: "Try it on Gemini",
@@ -104,6 +106,8 @@ export function Landing({ endpoint, stats }: { endpoint: string; stats: Stats })
             {t.h1a} <img className="h1-logo" src="/buyme-logo.webp" alt="BUYME" />{t.h1c}
           </h1>
           <p className="lede">{t.lede(fmt(stats.businesses))}</p>
+
+          <p className="hero-cap"><span className="cap-dot" aria-hidden="true" />{t.walletCap}</p>
 
           <div className="hero-install">
             <div className="cta-row">

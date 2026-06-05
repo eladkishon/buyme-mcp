@@ -119,9 +119,9 @@ button { font-family: inherit; }
    Hero — two-column product layout
    ===================================================================== */
 .hero {
-  width: 100%; max-width: 1140px;
-  display: grid; grid-template-columns: 1.04fr 0.96fr;
-  gap: clamp(28px, 4.5vw, 72px); align-items: center;
+  width: 100%; max-width: 1180px;
+  display: grid; grid-template-columns: 0.86fr 1.14fr;
+  gap: clamp(28px, 4vw, 64px); align-items: center;
   margin-bottom: clamp(48px, 8vh, 96px);
 }
 .hero-copy { display: flex; flex-direction: column; align-items: flex-start; text-align: start; max-width: 560px; }
@@ -139,8 +139,21 @@ button { font-family: inherit; }
 }
 .lede {
   font-size: clamp(16px, 1.5vw, 19px); line-height: 1.6; color: var(--text);
-  margin: 0 0 26px; max-width: 44ch;
+  margin: 0 0 18px; max-width: 44ch;
   animation: rise .85s .14s cubic-bezier(.16,1,.3,1) both;
+}
+
+/* wallet capability callout — echoes the demo's "runs locally · private" chip */
+.hero-cap {
+  display: inline-flex; align-items: flex-start; gap: 9px; max-width: 46ch;
+  margin: 0 0 26px; padding: 10px 15px; border-radius: 14px;
+  font-size: clamp(13px, 1.15vw, 14.5px); line-height: 1.5; font-weight: 600; color: var(--ink-2);
+  background: rgba(24,169,87,.07); border: 1px solid rgba(24,169,87,.22);
+  animation: rise .85s .22s cubic-bezier(.16,1,.3,1) both;
+}
+.hero-cap .cap-dot {
+  flex-shrink: 0; width: 9px; height: 9px; margin-top: 6px; border-radius: 50%;
+  background: #18a957; box-shadow: 0 0 0 4px rgba(24,169,87,.16);
 }
 
 /* hero actions */
@@ -179,6 +192,27 @@ button { font-family: inherit; }
    ===================================================================== */
 .hero-demo { position: relative; display: flex; justify-content: center; }
 .demo { position: relative; width: 100%; max-width: 440px; }
+
+/* two-card stack — side by side with a SLIGHT overlap, both windows fully visible */
+.demo-stack { max-width: 660px; padding-top: 14px; }
+.demo-stack .demo-win { width: 53%; animation: none; }
+.demo-win.is-front {
+  position: relative; z-index: 3; margin-inline-start: 0; margin-inline-end: auto;
+  transform: rotate(-1.6deg); transform-origin: center;
+}
+.demo-win.is-back {
+  position: absolute; top: 18px; inset-inline-end: 0; z-index: 1;
+  transform: rotate(2.2deg); transform-origin: center;
+}
+/* mirror the fan tilt in RTL (front stays on the start side, back on the end side) */
+[dir="rtl"] .demo-win.is-front { transform: rotate(1.6deg); }
+[dir="rtl"] .demo-win.is-back  { transform: rotate(-2.2deg); }
+/* small "runs locally · private" chip in the wallet window's title bar */
+.demo-badge {
+  margin-inline-start: auto; font-size: 10px; font-weight: 800; letter-spacing: .02em;
+  color: #18a957; background: rgba(24,169,87,.12); border: 1px solid rgba(24,169,87,.24);
+  padding: 3px 9px; border-radius: 999px; white-space: nowrap;
+}
 .demo-glow {
   position: absolute; inset: -12% -8% -16%; z-index: -1; pointer-events: none;
   background: radial-gradient(50% 45% at 50% 35%, rgba(255,92,155,.55), transparent 70%),
@@ -319,6 +353,39 @@ button { font-family: inherit; }
 .summary { font-size: 13px; color: var(--demo-text); font-weight: 600; padding-top: 1px; animation: fadeUp .4s cubic-bezier(.16,1,.3,1) both; }
 .summary b { color: var(--demo-ink); font-weight: 800; }
 
+/* tool-call local/private pill — shown on the wallet (list_my_giftcards) call */
+.tc-local {
+  flex-shrink: 0; font-size: 10px; font-weight: 800; letter-spacing: .02em;
+  color: #18a957; background: rgba(24,169,87,.1); border: 1px solid rgba(24,169,87,.22);
+  padding: 3px 8px; border-radius: 999px; white-space: nowrap;
+}
+
+/* wallet panel — the user's own gift cards (list_my_giftcards) */
+.wallet { display: flex; flex-direction: column; gap: 8px; animation: cardIn .38s cubic-bezier(.16,1,.3,1) both; }
+.wallet-total {
+  display: flex; flex-direction: column; gap: 1px;
+  padding: 14px 16px; border-radius: 16px; color: #fff;
+  background: var(--brand-grad); box-shadow: var(--sh-sm);
+}
+.wt-label { font-size: 11.5px; font-weight: 700; opacity: .92; letter-spacing: .01em; }
+.wt-amount { font-family: var(--font-mono-stack); font-size: 30px; font-weight: 800; line-height: 1.08; }
+.wt-note { font-size: 11.5px; font-weight: 600; opacity: .92; margin-top: 2px; }
+.wallet-cards { display: flex; flex-direction: column; gap: 7px; }
+.wcard {
+  display: flex; align-items: center; gap: 11px;
+  padding: 9px 12px; border-radius: 13px; background: var(--demo-surface); border: 1px solid var(--demo-line);
+  box-shadow: var(--sh-sm);
+}
+.wc-mark {
+  flex-shrink: 0; width: 34px; height: 34px; border-radius: 9px; display: grid; place-items: center;
+  font-family: var(--font-mono-stack); font-size: 11px; font-weight: 800; color: #fff;
+  background: var(--brand-grad); letter-spacing: .02em;
+}
+.wc-main { display: flex; flex-direction: column; gap: 1px; min-width: 0; flex: 1; }
+.wc-name { font-weight: 700; font-size: 13.5px; color: var(--demo-ink); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.wc-meta { font-size: 11px; color: var(--demo-muted); }
+.wc-balance { flex-shrink: 0; font-family: var(--font-mono-stack); font-size: 13px; font-weight: 800; color: var(--brand); background: var(--brand-soft); padding: 4px 10px; border-radius: 9px; }
+
 /* =====================================================================
    Hero install — primary prompt CTA + compact MCP command
    ===================================================================== */
@@ -389,7 +456,7 @@ button { font-family: inherit; }
   html { scroll-behavior: auto; }
   .zen::before, .zen::after,
   .h1, .lede, .cta-row, .hero-install, .howto,
-  .demo-win, .demo-glow, .turn, .toolcall, .rcard, .summary, .caret, .thinking i { animation: none !important; }
+  .demo-win, .demo-glow, .turn, .toolcall, .rcard, .wallet, .summary, .caret, .thinking i { animation: none !important; }
 }
 
 /* =====================================================================
@@ -402,6 +469,10 @@ button { font-family: inherit; }
   .hero-install { margin-inline: auto; }
   .cta-row { justify-content: center; }
   .hero-demo { order: 2; }
+  /* unfan the stack — two full-width cards, one above the other */
+  .demo-stack { max-width: 420px; display: flex; flex-direction: column; align-items: center; gap: 18px; }
+  .demo-stack .demo-win { position: static; width: 100%; transform: none; }
+  .demo-win.is-back { inset: auto; }
 }
 @media (max-width: 560px) {
   .topbar { margin-bottom: 28px; }

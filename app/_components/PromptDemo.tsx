@@ -9,7 +9,9 @@ type Provider = "claude" | "gemini";
 type Arg = { k: string; v: string };
 type Status = { open: boolean; text: string };
 type Result = { name: string; meta: string; logo: string; status: Status; price?: string; online?: boolean };
-type Demo = { prompt: string; args: Arg[]; results: Result[]; summary: string };
+type WalletCard = { name: string; meta: string; balance: string };
+type Wallet = { total: string; note: string; cards: WalletCard[] };
+type Demo = { prompt: string; args: Arg[]; results: Result[]; summary: string; tool?: string; wallet?: Wallet };
 
 const L = (id: string) => `https://buyme.co.il/files/siteNewLogo${id}.jpg`;
 
@@ -68,6 +70,22 @@ const DEMOS: Record<Lang, Demo[]> = {
       ],
       summary: "9 סדנאות בישול וטעימות.",
     },
+    {
+      prompt: "כמה כסף נשאר לי בארנק ה-BUYME שלי?",
+      tool: "list_my_giftcards",
+      args: [],
+      results: [],
+      wallet: {
+        total: "₪540",
+        note: "3 שוברים פעילים",
+        cards: [
+          { name: "BUYME ALL", meta: "בתוקף עד 2031", balance: "₪300" },
+          { name: "BUYME ALL", meta: "בתוקף עד 2031", balance: "₪200" },
+          { name: "BUYME ALL", meta: "בתוקף עד 2030", balance: "₪40" },
+        ],
+      },
+      summary: "₪540 בארנק — רץ מקומית, הטוקן שלכם נשאר על המכשיר.",
+    },
   ],
   en: [
     {
@@ -121,12 +139,28 @@ const DEMOS: Record<Lang, Demo[]> = {
       ],
       summary: "9 cooking and tasting workshops.",
     },
+    {
+      prompt: "How much do I have left in my BuyMe wallet?",
+      tool: "list_my_giftcards",
+      args: [],
+      results: [],
+      wallet: {
+        total: "₪540",
+        note: "3 active gift cards",
+        cards: [
+          { name: "BUYME ALL", meta: "Valid until 2031", balance: "₪300" },
+          { name: "BUYME ALL", meta: "Valid until 2031", balance: "₪200" },
+          { name: "BUYME ALL", meta: "Valid until 2030", balance: "₪40" },
+        ],
+      },
+      summary: "₪540 in your wallet — runs locally, your token never leaves your device.",
+    },
   ],
 };
 
 const STR = {
-  he: { tool: "search_businesses", online: "אונליין", askClaude: "כתבו ל-Claude…", askGemini: "שאלו את Gemini" },
-  en: { tool: "search_businesses", online: "online", askClaude: "Reply to Claude…", askGemini: "Ask Gemini" },
+  he: { tool: "search_businesses", online: "אונליין", askClaude: "כתבו ל-Claude…", askGemini: "שאלו את Gemini", totalLabel: "היתרה הכוללת", local: "רץ מקומית · פרטי" },
+  en: { tool: "search_businesses", online: "online", askClaude: "Reply to Claude…", askGemini: "Ask Gemini", totalLabel: "Total balance", local: "Runs locally · private" },
 } as const;
 
 function usePrefersReducedMotion() {
@@ -143,23 +177,55 @@ function usePrefersReducedMotion() {
 
 type Stage = "type" | "call" | "results" | "done";
 
-function ToolCall({ demo, tool }: { demo: Demo; tool: string }) {
+function ToolCall({ demo, tool, localLabel }: { demo: Demo; tool: string; localLabel?: string }) {
+  const fn = demo.tool ?? tool;
   return (
     <div className="toolcall" dir="ltr">
       <span className="tc-dot" />
       <code className="tc-code">
-        <span className="tc-fn">{tool}</span>
-        <span className="tc-pun">({"{ "}</span>
-        {demo.args.map((a, i) => (
-          <span key={a.k}>
-            <span className="tc-key">{a.k}</span>
-            <span className="tc-pun">: </span>
-            <span className="tc-val">{a.v}</span>
-            {i < demo.args.length - 1 && <span className="tc-pun">, </span>}
-          </span>
-        ))}
-        <span className="tc-pun">{" }"})</span>
+        <span className="tc-fn">{fn}</span>
+        <span className="tc-pun">(</span>
+        {demo.args.length > 0 && (
+          <>
+            <span className="tc-pun">{"{ "}</span>
+            {demo.args.map((a, i) => (
+              <span key={a.k}>
+                <span className="tc-key">{a.k}</span>
+                <span className="tc-pun">: </span>
+                <span className="tc-val">{a.v}</span>
+                {i < demo.args.length - 1 && <span className="tc-pun">, </span>}
+              </span>
+            ))}
+            <span className="tc-pun">{" }"}</span>
+          </>
+        )}
+        <span className="tc-pun">)</span>
       </code>
+      {localLabel && demo.wallet && <span className="tc-local">{localLabel}</span>}
+    </div>
+  );
+}
+
+function WalletPanel({ w, totalLabel }: { w: Wallet; totalLabel: string }) {
+  return (
+    <div className="wallet">
+      <div className="wallet-total">
+        <span className="wt-label">{totalLabel}</span>
+        <span className="wt-amount" dir="ltr">{w.total}</span>
+        <span className="wt-note">{w.note}</span>
+      </div>
+      <div className="wallet-cards">
+        {w.cards.map((c, i) => (
+          <div className="wcard" key={i}>
+            <span className="wc-mark" aria-hidden="true">BM</span>
+            <span className="wc-main">
+              <span className="wc-name">{c.name}</span>
+              <span className="wc-meta">{c.meta}</span>
+            </span>
+            <span className="wc-balance" dir="ltr">{c.balance}</span>
+          </div>
+        ))}
+      </div>
     </div>
   );
 }
@@ -210,10 +276,14 @@ function Turn({ demo, lang, provider }: { demo: Demo; lang: Lang; provider: Prov
       <div className="msg assistant">
         <AiAvatar provider={provider} />
         <div className="ai-body">
-          <ToolCall demo={demo} tool={s.tool} />
-          <div className="results">
-            {demo.results.map((r) => <ResultCard key={r.name} r={r} lang={lang} />)}
-          </div>
+          <ToolCall demo={demo} tool={s.tool} localLabel={s.local} />
+          {demo.wallet ? (
+            <WalletPanel w={demo.wallet} totalLabel={s.totalLabel} />
+          ) : (
+            <div className="results">
+              {demo.results.map((r) => <ResultCard key={r.name} r={r} lang={lang} />)}
+            </div>
+          )}
           <Summary text={demo.summary} />
         </div>
       </div>
@@ -221,18 +291,22 @@ function Turn({ demo, lang, provider }: { demo: Demo; lang: Lang; provider: Prov
   );
 }
 
-export function PromptDemo({
+function DemoWindow({
+  demos,
   lang,
   provider,
   onProvider,
+  className = "",
+  badge,
 }: {
+  demos: Demo[];
   lang: Lang;
   provider: Provider;
-  onProvider: (p: Provider) => void;
+  onProvider?: (p: Provider) => void;
+  className?: string;
+  badge?: string;
 }) {
-  const demos = DEMOS[lang];
   const s = STR[lang];
-  const rtl = lang === "he";
   const reduced = usePrefersReducedMotion();
 
   const [done, setDone] = useState<number[]>([]);
@@ -300,19 +374,19 @@ export function PromptDemo({
     after(active === 0 ? 360 : 480, () => typeNext(1));
     return clearAll;
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [active, lang, reduced]);
+  }, [active, lang, reduced, demos]);
 
   const demo = demos[active];
 
   return (
-    <div className="demo" dir={rtl ? "rtl" : "ltr"}>
-      <span className="demo-glow" aria-hidden="true" />
-      <div className={`demo-win prov-${provider}`}>
-        <div className="demo-bar">
-          <span className="demo-av">
-            {provider === "claude" ? <ClaudeMark size={16} /> : <GeminiMark size={16} />}
-          </span>
-          <span className="demo-name">{provider === "claude" ? "Claude" : "Gemini"}</span>
+    <div className={`demo-win prov-${provider} ${className}`}>
+      <div className="demo-bar">
+        <span className="demo-av">
+          {provider === "claude" ? <ClaudeMark size={16} /> : <GeminiMark size={16} />}
+        </span>
+        <span className="demo-name">{provider === "claude" ? "Claude" : "Gemini"}</span>
+        {badge && <span className="demo-badge">{badge}</span>}
+        {onProvider && (
           <div className="demo-seg" role="group" aria-label="Assistant">
             <button className={provider === "claude" ? "on" : ""} onClick={() => onProvider("claude")} aria-label="Claude">
               <ClaudeMark size={15} />
@@ -321,55 +395,81 @@ export function PromptDemo({
               <GeminiMark size={15} />
             </button>
           </div>
-        </div>
+        )}
+      </div>
 
-        <div className="demo-scroll" ref={scrollRef}>
-          {done.map((idx) => <Turn key={`done-${idx}`} demo={demos[idx]} lang={lang} provider={provider} />)}
+      <div className="demo-scroll" ref={scrollRef}>
+        {done.map((idx) => <Turn key={`done-${idx}`} demo={demos[idx]} lang={lang} provider={provider} />)}
 
-          {demo && (
-            <div className="turn" key={`active-${active}`}>
-              <div className="msg user">
-                <span className="msg-prompt">
-                  {typed}
-                  {stage === "type" && <span className="caret" />}
-                </span>
-              </div>
+        {demo && (
+          <div className="turn" key={`active-${active}`}>
+            <div className="msg user">
+              <span className="msg-prompt">
+                {typed}
+                {stage === "type" && <span className="caret" />}
+              </span>
+            </div>
 
-              {stage !== "type" && (
-                <div className="msg assistant">
-                  <AiAvatar provider={provider} />
-                  <div className="ai-body">
-                    <ToolCall demo={demo} tool={s.tool} />
-                    {stage === "call" && <div className="thinking"><i /><i /><i /></div>}
-                    {(stage === "results" || stage === "done") && (
+            {stage !== "type" && (
+              <div className="msg assistant">
+                <AiAvatar provider={provider} />
+                <div className="ai-body">
+                  <ToolCall demo={demo} tool={s.tool} localLabel={s.local} />
+                  {stage === "call" && <div className="thinking"><i /><i /><i /></div>}
+                  {(stage === "results" || stage === "done") &&
+                    (demo.wallet ? (
+                      <WalletPanel w={demo.wallet} totalLabel={s.totalLabel} />
+                    ) : (
                       <div className="results">
                         {demo.results.slice(0, shown).map((r) => <ResultCard key={r.name} r={r} lang={lang} />)}
                       </div>
-                    )}
-                    {stage === "done" && <Summary text={demo.summary} />}
-                  </div>
+                    ))}
+                  {stage === "done" && <Summary text={demo.summary} />}
                 </div>
-              )}
-            </div>
-          )}
-        </div>
-
-        <div className="demo-foot" aria-hidden="true">
-          {provider === "gemini" ? (
-            <div className="gem-composer">
-              <Plus className="gc-ic" size={18} />
-              <span className="gc-text">{s.askGemini}</span>
-              <span className="gc-pro">Pro <CaretDown size={12} weight="bold" /></span>
-              <Microphone className="gc-ic" size={17} weight="fill" />
-            </div>
-          ) : (
-            <>
-              <span className="fake-input">{s.askClaude}</span>
-              <button className="send" tabIndex={-1}><ArrowUp size={17} weight="bold" /></button>
-            </>
-          )}
-        </div>
+              </div>
+            )}
+          </div>
+        )}
       </div>
+
+      <div className="demo-foot" aria-hidden="true">
+        {provider === "gemini" ? (
+          <div className="gem-composer">
+            <Plus className="gc-ic" size={18} />
+            <span className="gc-text">{s.askGemini}</span>
+            <span className="gc-pro">Pro <CaretDown size={12} weight="bold" /></span>
+            <Microphone className="gc-ic" size={17} weight="fill" />
+          </div>
+        ) : (
+          <>
+            <span className="fake-input">{s.askClaude}</span>
+            <button className="send" tabIndex={-1}><ArrowUp size={17} weight="bold" /></button>
+          </>
+        )}
+      </div>
+    </div>
+  );
+}
+
+export function PromptDemo({
+  lang,
+  provider,
+  onProvider,
+}: {
+  lang: Lang;
+  provider: Provider;
+  onProvider: (p: Provider) => void;
+}) {
+  const rtl = lang === "he";
+  const s = STR[lang];
+  const searchDemos = DEMOS[lang].filter((d) => !d.wallet);
+  const walletDemos = DEMOS[lang].filter((d) => d.wallet);
+
+  return (
+    <div className="demo demo-stack" dir={rtl ? "rtl" : "ltr"}>
+      <span className="demo-glow" aria-hidden="true" />
+      <DemoWindow className="is-back" demos={walletDemos} lang={lang} provider={provider} badge={s.local} />
+      <DemoWindow className="is-front" demos={searchDemos} lang={lang} provider={provider} onProvider={onProvider} />
     </div>
   );
 }
