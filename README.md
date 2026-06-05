@@ -56,8 +56,10 @@ The bundled `data/buyme.json` always works. Two ways to refresh:
 ```sh
 cd ~/buyme-mcp && npm run scrape           # rebuild ~/buyme-mcp/data/buyme.json
 cp ~/buyme-mcp/data/buyme.json ~/buyme-mcp-vercel/data/
-cd ~/buyme-mcp-vercel && vercel deploy --prod
+cd ~/buyme-mcp-vercel && git commit -am "refresh catalog" && git push   # auto-deploys (or: vercel deploy --prod)
 ```
+
+> This repo is connected to Vercel — pushing to `main` triggers a production deploy automatically.
 
 ### B) Automated weekly cron → Vercel Blob (needs Blob store + Fluid compute)
 
