@@ -153,8 +153,8 @@ export function Landing({ endpoint, stats }: { endpoint: string; stats: Stats })
       <nav className="nav">
         <div className="wrap nav-inner">
           <div className="brand">
-            <span className="brand-mark"><Gift size={18} weight="fill" /></span>
-            <span><span className="bm">BUYME</span> Finder</span>
+            <img src="/buyme-logo.webp" alt="BUYME" className="brand-logo" />
+            <span className="brand-finder">Finder</span>
             <span className="tag">MCP</span>
           </div>
           <div className="nav-right">
@@ -323,7 +323,7 @@ export function Landing({ endpoint, stats }: { endpoint: string; stats: Stats })
       <footer className="footer">
         <div className="wrap">
           <div className="footer-top">
-            <div className="brand"><span className="brand-mark"><Gift size={17} weight="fill" /></span><span><span className="bm">BUYME</span> Finder</span></div>
+            <div className="brand"><img src="/buyme-logo.webp" alt="BUYME" className="brand-logo" /><span className="brand-finder">Finder</span></div>
             <div className="footer-links">
               <a href="https://buyme.co.il" target="_blank" rel="noreferrer">buyme.co.il <ArrowUpRight size={12} /></a>
               <a href={REPO_URL} target="_blank" rel="noreferrer">GitHub</a>

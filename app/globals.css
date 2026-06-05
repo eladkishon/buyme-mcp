@@ -52,6 +52,9 @@ a { color: inherit; text-decoration: none; }
 .brand { display: flex; align-items: center; gap: 9px; font-weight: 800; font-size: 19px; letter-spacing: -0.01em; color: var(--ink); }
 .brand .bm { color: var(--brand); }
 .brand-mark { display: grid; place-items: center; width: 30px; height: 30px; border-radius: 9px; background: var(--brand); color: #fff; }
+.brand-logo { height: 42px; width: auto; display: block; }
+.brand-finder { font-weight: 800; font-size: 18px; color: var(--ink); letter-spacing: -0.01em; }
+.footer .brand-logo { height: 34px; }
 .brand .tag { font-size: 11px; font-weight: 700; color: var(--muted); background: var(--bg-soft); border: 1px solid var(--line); border-radius: 6px; padding: 2px 7px; letter-spacing: 0.04em; }
 .nav-right { display: flex; align-items: center; gap: 14px; }
 .nav-links { display: flex; align-items: center; gap: 22px; color: var(--text); font-size: 14.5px; }
