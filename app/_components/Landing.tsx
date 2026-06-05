@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { track } from "@vercel/analytics";
 import { Star, GithubLogo } from "@phosphor-icons/react";
 import { CopyButton } from "./CopyButton";
 import { McpCommand } from "./InstallRow";
@@ -88,10 +89,10 @@ export function Landing({ endpoint, stats }: { endpoint: string; stats: Stats })
       <header className="topbar">
         <div className="topbar-right">
           <div className="lang" role="group" aria-label="Language">
-            <button className={rtl ? "on" : ""} onClick={() => setLang("he")}>עברית</button>
-            <button className={!rtl ? "on" : ""} onClick={() => setLang("en")}>EN</button>
+            <button className={rtl ? "on" : ""} onClick={() => { setLang("he"); track("switch_language", { lang: "he" }); }}>עברית</button>
+            <button className={!rtl ? "on" : ""} onClick={() => { setLang("en"); track("switch_language", { lang: "en" }); }}>EN</button>
           </div>
-          <a className="ghbtn" href={REPO_URL} target="_blank" rel="noreferrer">
+          <a className="ghbtn" href={REPO_URL} target="_blank" rel="noreferrer" onClick={() => track("click_star")}>
             <GithubLogo size={16} weight="fill" />
             <span className="ghbtn-label">{t.star}</span>
             <Star size={14} weight="fill" className="star-ico" />
@@ -111,8 +112,8 @@ export function Landing({ endpoint, stats }: { endpoint: string; stats: Stats })
 
           <div className="hero-install">
             <div className="cta-row">
-              <CopyButton variant="primary" text={promptText} label={t.copyPrompt} copiedLabel={t.copied} />
-              <a className="btn btn-ghost" href={GEM_URL} target="_blank" rel="noreferrer">
+              <CopyButton variant="primary" text={promptText} label={t.copyPrompt} copiedLabel={t.copied} event="copy_install_prompt" eventProps={{ lang }} />
+              <a className="btn btn-ghost" href={GEM_URL} target="_blank" rel="noreferrer" onClick={() => track("click_gemini_gem", { where: "cta" })}>
                 <GeminiMark size={18} /> {t.gemCta}
               </a>
             </div>
@@ -137,7 +138,11 @@ export function Landing({ endpoint, stats }: { endpoint: string; stats: Stats })
         </div>
 
         <div className="hero-demo">
-          <PromptDemo lang={lang} provider={provider} onProvider={setProvider} />
+          <PromptDemo
+            lang={lang}
+            provider={provider}
+            onProvider={(p) => { setProvider(p); track("switch_provider", { provider: p }); }}
+          />
         </div>
       </section>
 

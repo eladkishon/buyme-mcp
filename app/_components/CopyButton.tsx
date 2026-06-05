@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { Copy, Check } from "@phosphor-icons/react";
+import { track } from "@vercel/analytics";
 
 type Variant = "solid" | "chip" | "primary";
 
@@ -10,11 +11,15 @@ export function CopyButton({
   label = "Copy",
   copiedLabel,
   variant = "solid",
+  event,
+  eventProps,
 }: {
   text: string;
   label?: string;
   copiedLabel?: string;
   variant?: Variant;
+  event?: string;
+  eventProps?: Record<string, string | number | boolean | null>;
 }) {
   const [copied, setCopied] = useState(false);
 
@@ -26,6 +31,7 @@ export function CopyButton({
     try {
       await navigator.clipboard.writeText(text);
       setCopied(true);
+      if (event) track(event, eventProps);
       setTimeout(() => setCopied(false), 1700);
     } catch {
       /* clipboard unavailable */

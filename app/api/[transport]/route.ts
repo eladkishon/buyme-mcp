@@ -25,6 +25,17 @@ function ok(payload: any) {
   return { content: [{ type: "text" as const, text: JSON.stringify(payload, null, 2) }] };
 }
 
+// Basic backend usage tracking. Vercel Web Analytics is frontend-only, so MCP
+// tool calls are emitted as structured log lines instead — queryable in Vercel
+// Logs / Observability. No external analytics account, no PII in the payload.
+function logUsage(tool: string, props: Record<string, unknown> = {}) {
+  try {
+    console.log(JSON.stringify({ evt: "mcp_tool_called", tool, ts: new Date().toISOString(), ...props }));
+  } catch {
+    /* never let logging break a tool call */
+  }
+}
+
 const handler = createMcpHandler(
   (server) => {
     server.registerTool(
@@ -53,6 +64,12 @@ const handler = createMcpHandler(
         },
       },
       async (args) => {
+        logUsage("search_businesses", {
+          hasQuery: !!args.query,
+          category: args.category ?? null,
+          region: args.region ?? null,
+          online_only: !!args.online_only,
+        });
         const db = await getDataset();
         return ok({ ...search(db, args), _source: ATTRIBUTION });
       }
@@ -69,6 +86,7 @@ const handler = createMcpHandler(
         },
       },
       async ({ id }) => {
+        logUsage("get_business", { id });
         const db = await getDataset();
         return ok({ ...getBusiness(db, id), _source: ATTRIBUTION });
       }
@@ -85,8 +103,9 @@ const handler = createMcpHandler(
           include_expired: z.boolean().optional().describe("Include expired gift cards (default false)."),
         },
       },
-      async () =>
-        ok({
+      async () => {
+        logUsage("list_my_giftcards", { result: "disabled_on_cloud" });
+        return ok({
           status: "DISABLED_ON_CLOUD",
           reason:
             "Reading a personal wallet requires the user's logged-in buyme.co.il session. This public, multi-tenant cloud server must never hold per-user credentials, so the capability is only available on the locally-installed server.",
@@ -98,7 +117,8 @@ const handler = createMcpHandler(
             "3. Save it to ~/.buyme-token.json as {\"token\":\"<jwt>\"} (or set BUYME_TOKEN). Tokens last ~1 year.",
             "4. The local list_my_giftcards tool then fetches the wallet directly — no browser needed.",
           ].join("\n"),
-        })
+        });
+      }
     );
 
     server.registerTool(
@@ -109,6 +129,7 @@ const handler = createMcpHandler(
         inputSchema: {},
       },
       async () => {
+        logUsage("list_categories");
         const db = await getDataset();
         return ok({ ...listCategories(db), _source: ATTRIBUTION });
       }
@@ -122,6 +143,7 @@ const handler = createMcpHandler(
         inputSchema: {},
       },
       async () => {
+        logUsage("list_regions");
         const db = await getDataset();
         return ok({ ...listRegions(db), _source: ATTRIBUTION });
       }

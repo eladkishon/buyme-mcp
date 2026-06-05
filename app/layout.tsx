@@ -1,6 +1,7 @@
 import "./globals.css";
 import { Assistant, Rubik } from "next/font/google";
 import { GeistMono } from "geist/font/mono";
+import { Analytics } from "@vercel/analytics/next";
 
 // Clean, refined humanist body — premium in both Hebrew and Latin.
 const assistant = Assistant({
@@ -24,16 +25,27 @@ export const metadata = {
     "כלי חכם לחיפוש בתי עסק שמכבדים שובר BUYME — לפי קטגוריה, אזור, מחיר ומימוש אונליין. מתחבר ל-Gemini, Claude וכל עוזר AI. A smart finder for businesses that accept BuyMe gift cards, from your AI assistant.",
   metadataBase: new URL("https://buyme-mcp-vercel.vercel.app"),
   openGraph: {
+    type: "website",
+    siteName: "BUYME Finder",
     title: "BUYME Finder",
     description: "חיפוש בתי עסק שמכבדים BUYME, ישר מתוך עוזר ה-AI שלכם.",
-    url: "https://buyme-mcp-vercel.vercel.app",
+    url: "https://buyme-mcp-vercel.vercel.app/",
+    locale: "he_IL",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "BUYME Finder",
+    description: "חיפוש בתי עסק שמכבדים BUYME, ישר מתוך עוזר ה-AI שלכם.",
   },
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="he" dir="rtl" className={`${assistant.variable} ${rubik.variable} ${GeistMono.variable}`}>
-      <body>{children}</body>
+      <body>
+        {children}
+        <Analytics />
+      </body>
     </html>
   );
 }

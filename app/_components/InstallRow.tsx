@@ -28,7 +28,7 @@ export function McpCommand({
       <div className="cmdline" dir="ltr">
         <span className="cmd-prompt">$</span>
         <code className="cmd-code">{command}</code>
-        <CopyButton text={command} label={t.copy} />
+        <CopyButton text={command} label={t.copy} event="copy_mcp_command" eventProps={{ provider }} />
       </div>
     </div>
   );
