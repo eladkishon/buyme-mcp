@@ -1,0 +1,17 @@
+{
+  "name": "buyme-mcp",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "MCP server to search Israeli businesses that accept BuyMe (buyme.co.il) gift cards",
+  "bin": {
+    "buyme-mcp": "server.mjs"
+  },
+  "scripts": {
+    "scrape": "node scrape.mjs",
+    "start": "node server.mjs"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.13.0"
+  }
+}
