@@ -3,8 +3,17 @@
 import { useState } from "react";
 import { Copy, Check } from "@phosphor-icons/react";
 
-export function CopyButton({ text, label = "Copy" }: { text: string; label?: string }) {
+export function CopyButton({
+  text,
+  label = "Copy",
+  variant = "solid",
+}: {
+  text: string;
+  label?: string;
+  variant?: "solid" | "chip";
+}) {
   const [copied, setCopied] = useState(false);
+  const base = variant === "chip" ? "chip-copy" : "copy";
 
   async function onCopy() {
     try {
@@ -17,9 +26,9 @@ export function CopyButton({ text, label = "Copy" }: { text: string; label?: str
   }
 
   return (
-    <button className={`copy${copied ? " copied" : ""}`} onClick={onCopy} aria-label={label}>
+    <button className={`${base}${copied ? " copied" : ""}`} onClick={onCopy} aria-label={label}>
       {copied ? <Check size={15} weight="bold" /> : <Copy size={15} />}
-      {copied ? "Copied" : label}
+      {copied ? (variant === "chip" ? label : "Copied") : label}
     </button>
   );
 }
