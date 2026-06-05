@@ -1,11 +1,20 @@
 import "./globals.css";
-import { Open_Sans } from "next/font/google";
+import { Assistant, Rubik } from "next/font/google";
 import { GeistMono } from "geist/font/mono";
 
-const openSans = Open_Sans({
+// Clean, refined humanist body — premium in both Hebrew and Latin.
+const assistant = Assistant({
   subsets: ["latin", "hebrew"],
-  weight: ["400", "600", "700", "800"],
+  weight: ["400", "500", "600", "700", "800"],
   variable: "--font-sans",
+  display: "swap",
+});
+
+// Modern geometric display for headlines — strong, premium, bilingual.
+const rubik = Rubik({
+  subsets: ["latin", "hebrew"],
+  weight: ["500", "600", "700", "800", "900"],
+  variable: "--font-display",
   display: "swap",
 });
 
@@ -23,7 +32,7 @@ export const metadata = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="he" dir="rtl" className={`${openSans.variable} ${GeistMono.variable}`}>
+    <html lang="he" dir="rtl" className={`${assistant.variable} ${rubik.variable} ${GeistMono.variable}`}>
       <body>{children}</body>
     </html>
   );

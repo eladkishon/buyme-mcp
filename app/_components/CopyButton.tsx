@@ -3,32 +3,47 @@
 import { useState } from "react";
 import { Copy, Check } from "@phosphor-icons/react";
 
+type Variant = "solid" | "chip" | "primary";
+
 export function CopyButton({
   text,
   label = "Copy",
+  copiedLabel,
   variant = "solid",
 }: {
   text: string;
   label?: string;
-  variant?: "solid" | "chip";
+  copiedLabel?: string;
+  variant?: Variant;
 }) {
   const [copied, setCopied] = useState(false);
-  const base = variant === "chip" ? "chip-copy" : "copy";
+
+  const base =
+    variant === "chip" ? "chip-copy" : variant === "primary" ? "btn btn-primary" : "copy";
+  const iconSize = variant === "primary" ? 17 : 15;
 
   async function onCopy() {
     try {
       await navigator.clipboard.writeText(text);
       setCopied(true);
-      setTimeout(() => setCopied(false), 1600);
+      setTimeout(() => setCopied(false), 1700);
     } catch {
       /* clipboard unavailable */
     }
   }
 
+  // What to show once copied. Chips keep their own label; solid/primary fall back to a generic confirm.
+  const doneLabel = copiedLabel ?? (variant === "chip" ? label : "Copied");
+
   return (
-    <button className={`${base}${copied ? " copied" : ""}`} onClick={onCopy} aria-label={label}>
-      {copied ? <Check size={15} weight="bold" /> : <Copy size={15} />}
-      {copied ? (variant === "chip" ? label : "Copied") : label}
+    <button
+      className={`${base}${copied ? " copied" : ""}`}
+      onClick={onCopy}
+      aria-label={label}
+      type="button"
+    >
+      {copied ? <Check size={iconSize} weight="bold" /> : <Copy size={iconSize} />}
+      {copied ? doneLabel : label}
     </button>
   );
 }
