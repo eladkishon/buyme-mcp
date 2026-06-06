@@ -184,10 +184,24 @@ export function getBusiness(db: AnyObj, id: string | number) {
     url: b.url,
     terms: b.terms,
     voucher: b.voucher,
+    // How the business redeems BuyMe + whether multiple cards can be combined in one purchase.
+    paymentWay: b.paymentWay ?? null,
+    acceptsMultipleVouchers: b.acceptsMultipleVouchers ?? null,
+    onlineRedeemMoney: b.onlineRedeemMoney ?? null,
+    multipleVouchersNote: multiVoucherNote(b.paymentWay ?? null, b.acceptsMultipleVouchers ?? null),
     searchTerms: b.searchTerms,
     products: b.products,
     productCount: b.productCount,
   };
+}
+
+// Human note about combining several BuyMe cards at one business, from its paymentWay.
+function multiVoucherNote(paymentWay: string | null, accepts: boolean | null): string {
+  if (accepts === true)
+    return "MultiPass redemption — BuyMe manages the transaction, so you can spend a card partially and stack several BuyMe cards in one purchase.";
+  if (accepts === false)
+    return `Redeemed via ${paymentWay || "the card POS"} — the voucher is swiped once like a prepaid card, so typically one BuyMe voucher per purchase. To combine several, call BuyMe support (03-3737117) or confirm with the branch.`;
+  return "Couldn't determine whether this business accepts multiple BuyMe cards in one purchase — confirm with the branch or BuyMe support (03-3737117).";
 }
 
 export function listCategories(db: AnyObj) {

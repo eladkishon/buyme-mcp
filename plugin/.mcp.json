@@ -1,0 +1,9 @@
+{
+  "mcpServers": {
+    "buyme": {
+      "command": "node",
+      "args": ["${CLAUDE_PLUGIN_ROOT}/../local-server/server.mjs"],
+      "env": {}
+    }
+  }
+}

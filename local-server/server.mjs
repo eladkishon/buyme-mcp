@@ -179,9 +179,44 @@ function searchBusinesses({ query, category, region, online_only, min_price, max
   };
 }
 
-function getBusiness(id) {
+// Map a business's `paymentWay` to a human note about combining multiple BuyMe cards.
+function multiVoucherNote(paymentWay, accepts) {
+  if (accepts === true)
+    return "MultiPass redemption — BuyMe manages the transaction, so you can spend a card partially and stack several BuyMe cards in one purchase.";
+  if (accepts === false)
+    return `Redeemed via ${paymentWay || "the card POS"} — the voucher is swiped once like a prepaid card, so typically one BuyMe voucher per purchase. To combine several, call BuyMe support (03-3737117) or confirm with the branch.`;
+  return "Couldn't determine whether this business accepts multiple BuyMe cards in one purchase — confirm with the branch or BuyMe support (03-3737117).";
+}
+
+// Live supplier detail (used to backfill paymentWay when the bundled data predates it).
+async function fetchSupplierDetail(id) {
+  try {
+    const r = await fetch(`https://buyme.co.il/siteapi/supplier/${id}`, {
+      headers: { Accept: "application/json", "User-Agent": "buyme-mcp" },
+    });
+    if (!r.ok) return null;
+    return await r.json();
+  } catch {
+    return null;
+  }
+}
+
+async function getBusiness(id) {
   const b = DB.businesses.find((x) => String(x.id) === String(id));
   if (!b) return { error: `No business with id ${id}` };
+
+  let paymentWay = b.paymentWay;
+  let acceptsMultipleVouchers = b.acceptsMultipleVouchers;
+  let onlineRedeemMoney = b.onlineRedeemMoney;
+  // Backfill from live detail if the bundled catalog predates these fields.
+  if (paymentWay === undefined) {
+    const d = await fetchSupplierDetail(b.id);
+    paymentWay = d?.paymentWay ?? null;
+    acceptsMultipleVouchers =
+      paymentWay === "MultiPass" ? true : paymentWay ? false : null;
+    onlineRedeemMoney = !!d?.online_redeem_money;
+  }
+
   return {
     id: b.id,
     name: b.name,
@@ -203,6 +238,11 @@ function getBusiness(id) {
     url: b.url,
     terms: b.terms,
     voucher: b.voucher,
+    // How the business redeems BuyMe + whether multiple cards can be combined.
+    paymentWay: paymentWay ?? null,
+    acceptsMultipleVouchers: acceptsMultipleVouchers ?? null,
+    onlineRedeemMoney: onlineRedeemMoney ?? null,
+    multipleVouchersNote: multiVoucherNote(paymentWay, acceptsMultipleVouchers),
     searchTerms: b.searchTerms,
     products: b.products,
     productCount: b.productCount,
@@ -314,6 +354,8 @@ async function loadWallet({ include_used = false, include_expired = false } = {}
     balance: c.amount,
     originalValue: c.originalValue,
     code: c.serialnumber,
+    barcode: c.voucherBarcode || null,
+    shortToken: c.shortToken || null,
     expiresAt: c.expiresAt,
     used: c.used,
     supplier: c.supplier?.name,
@@ -452,6 +494,42 @@ async function assembleAmount({ amount } = {}) {
   };
 }
 
+// Bulk-export the redemption details for many cards at once — for fulfilling/redeeming
+// several gift cards in one go (serial code, barcode, and the redeem link per card).
+// Optionally restrict to specific ids; by default returns every active card with balance.
+async function bulkGiftcardCodes({ ids = null, include_zero_balance = false, include_used = false, include_expired = false } = {}) {
+  const w = await loadWallet({ include_used, include_expired });
+  if (w.status !== "OK") return w;
+
+  const wanted = ids && ids.length ? new Set(ids.map((x) => String(x))) : null;
+  const cards = w.cards
+    .filter((c) => (wanted ? wanted.has(String(c.id)) : true))
+    .filter((c) => (include_zero_balance ? true : (c.balance || 0) > 0));
+
+  const missing =
+    wanted ? [...wanted].filter((id) => !w.cards.some((c) => String(c.id) === id)) : [];
+
+  return {
+    status: "OK",
+    tokenValidUntil: w.tokenValidUntil,
+    currency: "ILS",
+    count: cards.length,
+    totalBalance: cards.reduce((s, c) => s + (c.balance || 0), 0),
+    ...(missing.length ? { notFoundIds: missing } : {}),
+    note: "Redemption details for multiple cards at once. `code` is the serial to type at checkout; `barcode` (when present) is the scannable number; `redeemUrl` opens the card to show its QR/barcode.",
+    giftcards: cards.map((c) => ({
+      id: c.id,
+      title: c.title,
+      supplier: c.supplier,
+      balance: c.balance,
+      code: c.code,
+      barcode: c.barcode,
+      expiresAt: c.expiresAt,
+      redeemUrl: c.url,
+    })),
+  };
+}
+
 const TOOLS = [
   {
     name: "search_businesses",
@@ -488,7 +566,7 @@ const TOOLS = [
   {
     name: "get_business",
     description:
-      "Get full detail for one business by its id (from search_businesses results): all products with prices, money-voucher range, redemption terms, contact info, and links.",
+      "Get full detail for one business by its id (from search_businesses results): all products with prices, money-voucher range, redemption terms, contact info, and links. Also returns `paymentWay` and `acceptsMultipleVouchers` — whether several BuyMe cards can be combined in one purchase (true for MultiPass businesses; Shva/card-POS businesses are usually one voucher per purchase) — plus a `multipleVouchersNote`.",
     inputSchema: {
       type: "object",
       properties: { id: { type: ["number", "string"], description: "Business id." } },
@@ -537,6 +615,25 @@ const TOOLS = [
         amount: { type: "number", description: "Total amount in ILS to cover with gift cards." },
       },
       required: ["amount"],
+      additionalProperties: false,
+    },
+  },
+  {
+    name: "bulk_giftcard_codes",
+    description:
+      "Bulk-export redemption details for MANY of the user's BuyMe gift cards at once — for fulfilling/redeeming several cards in one go. Returns per card: serial `code` (type at checkout), `barcode` (scannable, when available), balance, expiry, and a `redeemUrl` that shows the card's QR/barcode. By default returns all active cards with a positive balance; pass `ids` to restrict to specific cards, or include_zero_balance/include_used/include_expired to widen. Local stdio server only.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        ids: {
+          type: "array",
+          items: { type: ["number", "string"] },
+          description: "Optional: only these gift-card ids (from list_my_giftcards). Omit for all active cards.",
+        },
+        include_zero_balance: { type: "boolean", description: "Include cards with ₪0 balance (default false)." },
+        include_used: { type: "boolean", description: "Include already-used cards (default false)." },
+        include_expired: { type: "boolean", description: "Include expired cards (default false)." },
+      },
       additionalProperties: false,
     },
   },
@@ -590,9 +687,11 @@ You can also manage the user's OWN wallet. These fetch buyme.co.il live using a 
 - list_my_giftcards — every card: balance, code, expiry, redeem link, total.
 - wallet_summary — fast overview: total, counts, distribution, small cards to clear, expiry buckets. Prefer this when the user asks "how much do I have / what's in my wallet".
 - giftcards_expiring — cards lapsing within N days (default 90), soonest first; use proactively so nothing expires unused.
+- bulk_giftcard_codes — redemption details (serial code, barcode, redeem link) for many cards at once, for fulfilling/redeeming several cards in one go. Pass \`ids\` to target specific cards.
+- When asked whether several BuyMe cards work at one business, check get_business's \`acceptsMultipleVouchers\`: MultiPass businesses allow stacking + partial spend; Shva/card-POS businesses are usually one voucher per purchase (combining needs BuyMe support, 03-3737117). assemble_amount only helps where stacking is allowed.
 - assemble_amount — given a target ₪ amount, which cards to combine (lowest balance first, to clear small leftovers); returns the order, how much to draw from each, and any remainder to pay otherwise.
 
-Tools: search_businesses (find), get_business (full detail + \`terms\` — always read before recommending), list_my_giftcards / wallet_summary / giftcards_expiring / assemble_amount (the user's own wallet), list_categories, list_regions.`;
+Tools: search_businesses (find), get_business (full detail + \`terms\` — always read before recommending), list_my_giftcards / wallet_summary / giftcards_expiring / assemble_amount / bulk_giftcard_codes (the user's own wallet), list_categories, list_regions.`;
 
 const server = new Server(
   { name: "buyme", version: "1.0.0" },
@@ -610,7 +709,7 @@ server.setRequestHandler(CallToolRequestSchema, async (req) => {
         result = searchBusinesses(args);
         break;
       case "get_business":
-        result = getBusiness(args.id);
+        result = await getBusiness(args.id);
         break;
       case "list_my_giftcards":
         result = await listMyGiftcards(args);
@@ -623,6 +722,9 @@ server.setRequestHandler(CallToolRequestSchema, async (req) => {
         break;
       case "assemble_amount":
         result = await assembleAmount(args);
+        break;
+      case "bulk_giftcard_codes":
+        result = await bulkGiftcardCodes(args);
         break;
       case "list_categories":
         result = listCategories();

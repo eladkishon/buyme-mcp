@@ -1,0 +1,18 @@
+{
+  "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
+  "name": "buyme-local",
+  "description": "Local marketplace for the BuyMe concierge plugin, registered from the buyme-mcp repo clone.",
+  "owner": {
+    "name": "Elad Kishon",
+    "email": "elad@40rty.ai"
+  },
+  "plugins": [
+    {
+      "name": "buyme",
+      "source": "./plugin",
+      "description": "BuyMe gift-card concierge: search redeemable Israeli businesses, vet redemption terms/hours/multi-voucher acceptance, and manage your BuyMe wallet. Bundles the buyme MCP server, a concierge skill, and slash commands.",
+      "version": "1.0.0",
+      "category": "lifestyle"
+    }
+  ]
+}

@@ -80,7 +80,7 @@ const handler = createMcpHandler(
       {
         title: "Get BuyMe business detail",
         description:
-          "Full detail for one business by its id (from search_businesses results): all products with prices, money-voucher value range, redemption terms, contact info, and links.",
+          "Full detail for one business by its id (from search_businesses results): all products with prices, money-voucher value range, redemption terms, contact info, and links. Also returns `paymentWay` and `acceptsMultipleVouchers` — whether several BuyMe cards can be combined in one purchase (true for MultiPass businesses; Shva/card-POS businesses are usually one voucher per purchase) — plus a `multipleVouchersNote`.",
         inputSchema: {
           id: z.union([z.number(), z.string()]).describe("Business id."),
         },

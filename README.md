@@ -21,7 +21,7 @@ This repo holds **two servers** that share the same catalog:
 Catalog tools (both servers):
 
 - `search_businesses` — `query` (HE/EN) + filters: `category`, `region`, `online_only`, `min_price`, `max_price`, `limit`
-- `get_business` — full detail + all products/prices for one `id`
+- `get_business` — full detail + all products/prices for one `id`, incl. `paymentWay` + `acceptsMultipleVouchers` (whether several BuyMe cards can be stacked in one purchase — `true` for MultiPass, `false` for Shva/card-POS)
 - `list_categories` / `list_regions` — browse with counts
 
 Wallet tools (**local server only** — the cloud server returns `DISABLED_ON_CLOUD`):
@@ -30,6 +30,7 @@ Wallet tools (**local server only** — the cloud server returns `DISABLED_ON_CL
 - `wallet_summary` — total, counts, value distribution, small cards to clear, expiry buckets
 - `giftcards_expiring` — cards lapsing within N days (default 90), soonest first
 - `assemble_amount` — which cards to combine to cover a target ₪ amount, lowest balance first
+- `bulk_giftcard_codes` — redemption details (serial code, barcode, redeem link) for many cards at once; pass `ids` to target specific cards
 
 ## Connect
 
@@ -47,6 +48,25 @@ paste the endpoint URL.
 **Gemini API (`google-genai`)** and other SDKs: point their MCP client transport
 at the same URL.
 
+## Claude Code plugin
+
+`plugin/` is a self-contained Claude Code plugin (`buyme`) that wires this repo up
+for Claude Code in one shot:
+
+- **MCP** (`plugin/.mcp.json`) — registers the local stdio server (`local-server/server.mjs`,
+  wallet tools included) as the `buyme` MCP server.
+- **Skill** (`plugin/skills/concierge/SKILL.md`) — the concierge behavior (`buyme:concierge`):
+  always read `terms`, verify hours/closures, flag redemption blockers, handle the wallet.
+- **Commands** — `/buyme:find`, `/buyme:wallet`, `/buyme:expiring`, `/buyme:combine`, `/buyme:codes`.
+
+Local dev (`.claude-plugin/marketplace.json` makes the repo root a marketplace):
+
+```sh
+cd local-server && npm install            # the plugin's MCP server needs these deps
+claude plugin marketplace add .           # register this repo as the buyme-local marketplace
+claude plugin install buyme@buyme-local   # install the plugin
+```
+
 ## Architecture
 
 ```
@@ -59,6 +79,7 @@ scripts/scrape.mjs                   scraper -> data/buyme.json
 .github/workflows/refresh-catalog.yml  weekly auto-refresh
 data/buyme.json                      bundled catalog
 local-server/                        local stdio MCP server (wallet tools; not part of the Vercel build)
+plugin/                              Claude Code plugin: MCP config + concierge skill + slash commands
 ```
 
 Stateless Streamable HTTP — **no Redis required**. Node.js runtime.

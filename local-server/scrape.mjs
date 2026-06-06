@@ -125,6 +125,19 @@ function extractProducts(detail) {
   return products;
 }
 
+// How the business redeems BuyMe at the till, from the supplier detail's `paymentWay`:
+//   "MultiPass" -> BuyMe-managed redemption: partial spend + stacking multiple cards works.
+//   "שב\"א" (Shva) -> swiped once via the credit-card POS like a prepaid card: typically a
+//                     single voucher per purchase; combining several needs BuyMe support (03-3737117).
+// acceptsMultipleVouchers is a heuristic from this; null when unknown.
+function redemption(detail) {
+  const paymentWay = detail?.paymentWay || null;
+  let acceptsMultipleVouchers = null;
+  if (paymentWay === "MultiPass") acceptsMultipleVouchers = true;
+  else if (paymentWay) acceptsMultipleVouchers = false; // Shva / other = single swipe
+  return { paymentWay, acceptsMultipleVouchers, onlineRedeemMoney: !!detail?.online_redeem_money };
+}
+
 function extractMoneyVoucher(detail) {
   const min = toNumber(detail?.voucherMinValue);
   const max = toNumber(detail?.voucherMaxValue);
@@ -195,7 +208,7 @@ async function main() {
 
       if (!detail) {
         failures++;
-        return { ...base, about: null, voucher: null, products: [], productCount: 0 };
+        return { ...base, about: null, voucher: null, paymentWay: null, acceptsMultipleVouchers: null, onlineRedeemMoney: false, products: [], productCount: 0 };
       }
 
       const products = extractProducts(detail);
@@ -203,6 +216,7 @@ async function main() {
         ...base,
         about: stripHtml(detail.siteAbout).slice(0, 1200) || null,
         voucher: extractMoneyVoucher(detail),
+        ...redemption(detail),
         products,
         productCount: products.length,
       };
