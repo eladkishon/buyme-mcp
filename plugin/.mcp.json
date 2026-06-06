@@ -1,9 +1,14 @@
 {
   "mcpServers": {
     "buyme": {
+      "type": "stdio",
       "command": "node",
       "args": ["${CLAUDE_PLUGIN_ROOT}/../local-server/server.mjs"],
-      "env": {}
+      "env": { "BUYME_TOKEN": "${BUYME_TOKEN:-}" }
+    },
+    "buyme-cloud": {
+      "type": "http",
+      "url": "https://buyme-mcp-vercel.vercel.app/api/mcp"
     }
   }
 }

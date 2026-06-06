@@ -53,19 +53,31 @@ at the same URL.
 `plugin/` is a self-contained Claude Code plugin (`buyme`) that wires this repo up
 for Claude Code in one shot:
 
-- **MCP** (`plugin/.mcp.json`) — registers the local stdio server (`local-server/server.mjs`,
-  wallet tools included) as the `buyme` MCP server.
+- **MCP** (`plugin/.mcp.json`) — registers TWO servers:
+  - `buyme` (stdio, `local-server/server.mjs`) — full catalog **+ wallet** tools. Reads the
+    BuyMe token from `BUYME_TOKEN` (passed through) or `~/.buyme-token.json`.
+  - `buyme-cloud` (HTTP, the Vercel endpoint) — catalog only; works in any environment with
+    no local setup, so the plugin is useful even where the stdio server can't run.
 - **Skill** (`plugin/skills/concierge/SKILL.md`) — the concierge behavior (`buyme:concierge`):
   always read `terms`, verify hours/closures, flag redemption blockers, handle the wallet.
 - **Commands** — `/buyme:find`, `/buyme:wallet`, `/buyme:expiring`, `/buyme:combine`, `/buyme:codes`.
 
-Local dev (`.claude-plugin/marketplace.json` makes the repo root a marketplace):
+Install (the marketplace lives on GitHub via `.claude-plugin/marketplace.json`):
 
 ```sh
-cd local-server && npm install            # the plugin's MCP server needs these deps
-claude plugin marketplace add .           # register this repo as the buyme-local marketplace
-claude plugin install buyme@buyme-local   # install the plugin
+claude plugin marketplace add eladkishon/buyme-mcp   # or: add .  (from a local clone)
+claude plugin install buyme@buyme-local
 ```
+
+### Running in a cloud / remote Claude env
+
+- **Public / shared cloud:** add `buyme-cloud` (the HTTP endpoint) — catalog tools work
+  everywhere. Wallet tools return `DISABLED_ON_CLOUD` by design (a shared server must never
+  hold your credentials).
+- **Private cloud env you control** (your own Claude Code sandbox/agent): the stdio `buyme`
+  server gives full wallet access too — clone the repo, `cd local-server && npm install`, and
+  set `BUYME_TOKEN` as a secret env var. The plugin forwards it (`"env": {"BUYME_TOKEN":
+  "${BUYME_TOKEN:-}"}`), so no token file is needed.
 
 ## Architecture
 
